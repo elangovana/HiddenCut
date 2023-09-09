@@ -79,7 +79,6 @@ def main():
 
     logger = logging.getLogger()
     logger.addHandler(logging.StreamHandler(sys.stdout))
-    logger.addHandler(logging.FileHandler(filename=f'{training_args.output_dir}/log', mode='w' if training_args.do_train else 'a'))
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
         training_args.local_rank,
