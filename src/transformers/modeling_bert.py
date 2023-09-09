@@ -361,10 +361,12 @@ class BertOutput(nn.Module):
         self.dense = nn.Linear(config.intermediate_size, config.hidden_size)
         self.LayerNorm = BertLayerNorm(config.hidden_size, eps=config.layer_norm_eps)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        logger.info("Instantizating BertOutput from custom module")
 
     def forward(self, hidden_states, input_tensor, hidden_cutoff = None, attention_mask = None, attn_weights = None):
         hidden_states = self.dense(hidden_states)
         updated_masks = attention_mask
+
         if hidden_cutoff is None:
             hidden_states = self.dropout(hidden_states)
         elif hidden_cutoff == 'attn_span_cutoff':

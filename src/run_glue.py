@@ -70,7 +70,7 @@ def main():
 
     # Setup logging
     logging.basicConfig(
-        format="%(message)s",
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         datefmt="%m/%d/%Y %H:%M:%S",
         level=logging.INFO if training_args.local_rank in [-1, 0] else logging.WARN,
         # filename=f'{training_args.output_dir}/log',
