@@ -356,6 +356,7 @@ class RobertaForSequenceClassification(BertPreTrainedModel):
             inputs_embeds=inputs_embeds,
             hidden_cutoff = hidden_cutoff,
         )
+        logger.debug(f"hidden_cutoff = {hidden_cutoff}, length of outputs {len(outputs[0])}, len of {len(input_ids)}")
         sequence_output = outputs[0]
         logits = self.classifier(sequence_output)
 

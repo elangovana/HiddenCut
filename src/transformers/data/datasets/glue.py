@@ -151,6 +151,7 @@ class GlueAugDataset(Dataset):
                 'dev' if evaluate else 'train', tokenizer.__class__.__name__, str(args.max_seq_length), args.task_name,
             )
         )
+        logger.info(f"Loading file {args.train_aug_file}")
         if not evaluate:
             _, _aug_file = os.path.split(args.train_aug_file)
             _aug_file = _aug_file.split('.')[0]

@@ -78,7 +78,12 @@ def main():
     )
 
     logger = logging.getLogger()
-    logger.addHandler(logging.StreamHandler(sys.stdout))
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    sys_handler = logging.StreamHandler(sys.stdout)
+    sys_handler.setFormatter(formatter)
+    logger.addHandler(sys_handler)
+
     logger.warning(
         "Process rank: %s, device: %s, n_gpu: %s, distributed training: %s, 16-bits training: %s",
         training_args.local_rank,

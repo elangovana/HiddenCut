@@ -338,6 +338,7 @@ class Sst2Processor(DataProcessor):
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
+        logger.info(f"Creating examples for {set_type}, from {len(lines)} samples")
         examples = []
         for (i, line) in enumerate(lines):
             if i == 0:
