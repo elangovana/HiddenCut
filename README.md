@@ -19,12 +19,13 @@ If you would like to refer to it, please cite the paper mentioned above.
 1. Install Huggingface Transformers according to the instructions here: https://github.com/huggingface/transformers.
 
 2. Download the datasets from the GLUE benchmark:
-```python
+```bash
 python download_glue_data.py --data_dir glue_data --tasks all
 ```
 
 3. Fine-tune the RoBERTa model with the *HiddenCut* data augmentation strategies:
-```python
+```bash
+>>> cd src
 >>> chmod +x run_glue_hidden_cutoff.sh
 >>> ./run_glue_hidden_cutoff.sh
 ```
