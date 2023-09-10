@@ -383,6 +383,86 @@ class ImdbJsonProcessor(DataProcessor):
         return examples
 
 
+class ContrastSetIMDBProcessor(DataProcessor):
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        df = pd.read_csv(os.path.join(data_dir, "test_imdb_contrast.tsv"), delimiter='\t', quotechar='"',
+                         quoting=csv.QUOTE_MINIMAL, doublequote=True,
+                         names=["Sentiment", "Text"])
+
+        return self._create_examples(df, "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        label_map = {
+            "positive": "1",
+            "negative": "0"
+        }
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = label_map[str(line["Sentiment"])]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+
+class ContrastSetIMDBProcessorOriginal(DataProcessor):
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        df = pd.read_csv(os.path.join(data_dir, "test_imdb_contrast_original.tsv"), delimiter='\t', quotechar='"',
+                         quoting=csv.QUOTE_MINIMAL, doublequote=True,
+                         names=["Sentiment", "Text"])
+
+        return self._create_examples(df, "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        label_map = {
+            "positive": "1",
+            "negative": "0"
+        }
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = label_map[str(line["Sentiment"])]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+
 class AmazonProcessor(DataProcessor):
 
     def get_example_from_tensor_dict(self, tensor_dict):
@@ -791,7 +871,9 @@ glue_tasks_num_labels = {
     "imdb-json": 2,
     "yelppolarity": 2,
     "amazonpolarity": 2,
-    "semeval4": 2
+    "semeval4": 2,
+    "constrastsetimdboriginal": 2,
+    "constrastsetimdb": 2
 }
 
 glue_processors = {
@@ -811,7 +893,9 @@ glue_processors = {
     "imdb-json": ImdbJsonProcessor,
     "yelppolarity": YelpProcessor,
     "amazonpolarity": AmazonProcessor,
-    "semeval4": SemEvalProcessor
+    "semeval4": SemEvalProcessor,
+    "constrastsetimdb": ContrastSetIMDBProcessor,
+    "constrastsetimdboriginal": ContrastSetIMDBProcessorOriginal,
 }
 
 glue_output_modes = {
@@ -830,5 +914,7 @@ glue_output_modes = {
     "imdb-json": "classification",
     "yelppolarity": "classification",
     "amazonpolarity": "classification",
-    "semeval4": "classification"
+    "semeval4": "classification",
+    "constrastsetimdb": "classification",
+    "constrastsetimdboriginal": "classification"
 }
