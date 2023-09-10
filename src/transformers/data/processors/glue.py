@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """ GLUE processors and helpers """
-
+import csv
 import logging
 import os
 from enum import Enum
@@ -23,7 +23,7 @@ from typing import List, Optional, Union
 from ...file_utils import is_tf_available
 from ...tokenization_utils import PreTrainedTokenizer
 from .utils import DataProcessor, InputExample, InputFeatures
-import  pandas as pd
+import pandas as pd
 
 if is_tf_available():
     import tensorflow as tf
@@ -32,12 +32,12 @@ logger = logging.getLogger(__name__)
 
 
 def glue_convert_examples_to_features(
-    examples: Union[List[InputExample], "tf.data.Dataset"],
-    tokenizer: PreTrainedTokenizer,
-    max_length: Optional[int] = None,
-    task=None,
-    label_list=None,
-    output_mode=None,
+        examples: Union[List[InputExample], "tf.data.Dataset"],
+        tokenizer: PreTrainedTokenizer,
+        max_length: Optional[int] = None,
+        task=None,
+        label_list=None,
+        output_mode=None,
 ):
     """
     Loads a data file into a list of ``InputFeatures``
@@ -68,7 +68,7 @@ def glue_convert_examples_to_features(
 if is_tf_available():
 
     def _tf_glue_convert_examples_to_features(
-        examples: tf.data.Dataset, tokenizer: PreTrainedTokenizer, task=str, max_length: Optional[int] = None,
+            examples: tf.data.Dataset, tokenizer: PreTrainedTokenizer, task=str, max_length: Optional[int] = None,
     ) -> tf.data.Dataset:
         """
         Returns:
@@ -105,12 +105,12 @@ if is_tf_available():
 
 
 def _glue_convert_examples_to_features(
-    examples: List[InputExample],
-    tokenizer: PreTrainedTokenizer,
-    max_length: Optional[int] = None,
-    task=None,
-    label_list=None,
-    output_mode=None,
+        examples: List[InputExample],
+        tokenizer: PreTrainedTokenizer,
+        max_length: Optional[int] = None,
+        task=None,
+        label_list=None,
+        output_mode=None,
 ):
     if max_length is None:
         max_length = tokenizer.max_len
@@ -231,13 +231,12 @@ class MnliProcessor(DataProcessor):
             guid = "%s-%s" % (set_type, line[0])
             text_a = line[8]
             text_b = line[9]
-            
-            if set_type=='train':
+
+            if set_type == 'train':
                 label = line[11]
             else:
                 label = line[15]
-            
-            
+
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
@@ -349,6 +348,7 @@ class Sst2Processor(DataProcessor):
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
+
 class ImdbJsonProcessor(DataProcessor):
 
     def get_example_from_tensor_dict(self, tensor_dict):
@@ -376,13 +376,135 @@ class ImdbJsonProcessor(DataProcessor):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, line) in enumerate(df.to_dict(orient="records")):
-
             guid = "%s-%s" % (set_type, i)
             text_a = line["Text"]
             label = "1" if line["Sentiment"].upper() == "POSITIVE" else "0"
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
-    
+
+
+class AmazonProcessor(DataProcessor):
+
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        df = pd.read_csv(os.path.join(data_dir, "amazon_reviews_polarity_test.csv"), delimiter=',', quotechar='"',
+                         quoting=csv.QUOTE_ALL, doublequote=True,
+                         names=["Sentiment", "Title", "Text"])
+
+        return self._create_examples(df, "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        label_map = {
+            "1": "0",
+            "2": "1"
+        }
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = label_map[line["Sentiment"]]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+
+class YelpProcessor(DataProcessor):
+
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        df = pd.read_csv(os.path.join(data_dir, "yelp_reviews_polarity_test.csv"), delimiter=',', quotechar='"',
+                         escapechar='\\', quoting=csv.QUOTE_ALL,
+                         names=["Sentiment", "Text"])
+
+        return self._create_examples(df, "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        label_map = {
+            "1": "0",
+            "2": "1"
+        }
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = label_map[line["Sentiment"]]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+
+class SemEvalProcessor(DataProcessor):
+
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        raise NotImplementedError()
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        df = pd.read_csv(os.path.join(data_dir, "SemEval2017-task4-test.subtask-BD.english.txt"), delimiter='\t',
+                         names=["Id", "Topic", "Sentiment", "Text"])
+
+        return self._create_examples(df, "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        label_map = {
+            "positive": "1",
+            "negative": "0"
+        }
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = label_map[line["Sentiment"].lower()]
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
+
+
 class ImdbProcessor(DataProcessor):
     """Processor for the SST-2 data set (GLUE version)."""
 
@@ -497,9 +619,8 @@ class QqpProcessor(DataProcessor):
                 continue
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
-    
-    
-    
+
+
 class PawsProcessor(DataProcessor):
     """Processor for the QQP data set (GLUE version)."""
 
@@ -662,12 +783,15 @@ glue_tasks_num_labels = {
     "sst-2": 2,
     "sts-b": 1,
     "qqp": 2,
-    "paws":2,
+    "paws": 2,
     "qnli": 2,
     "rte": 2,
     "wnli": 2,
     "imdb": 2,
-    "imdb-json" :2
+    "imdb-json": 2,
+    "yelppolarity": 2,
+    "amazonpolarity": 2,
+    "semeval4": 2
 }
 
 glue_processors = {
@@ -679,12 +803,15 @@ glue_processors = {
     "sst-2": Sst2Processor,
     "sts-b": StsbProcessor,
     "qqp": QqpProcessor,
-    "paws":PawsProcessor,
+    "paws": PawsProcessor,
     "qnli": QnliProcessor,
     "rte": RteProcessor,
     "wnli": WnliProcessor,
     "imdb": ImdbProcessor,
-    "imdb-json": ImdbJsonProcessor
+    "imdb-json": ImdbJsonProcessor,
+    "yelppolarity": YelpProcessor,
+    "amazonpolarity": AmazonProcessor,
+    "semeval4": SemEvalProcessor
 }
 
 glue_output_modes = {
@@ -700,5 +827,8 @@ glue_output_modes = {
     "rte": "classification",
     "wnli": "classification",
     "imdb": "classification",
-    "imdb-json":"classification"
+    "imdb-json": "classification",
+    "yelppolarity": "classification",
+    "amazonpolarity": "classification",
+    "semeval4": "classification"
 }

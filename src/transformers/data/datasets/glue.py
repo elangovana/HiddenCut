@@ -33,6 +33,11 @@ class GlueDataTrainingArguments:
         default='mnli',
         metadata={"help": "The name of the task to train on: " + ", ".join(glue_processors.keys())}
     )
+
+    additional_eval_tasks: str = field(
+        default=None,
+        metadata={"help": "The additional datasets csv formatted to run eval on: " + ", ".join(glue_processors.keys())}
+    )
     data_dir: str = field(
         default='data/mnli',
         metadata={"help": "The input data dir. Should contain the .tsv files (or other data files) for the task."}

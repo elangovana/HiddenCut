@@ -202,6 +202,46 @@ def main():
         if trainer.is_world_master():
             tokenizer.save_pretrained(training_args.output_dir)
 
+            # Extra evaluation
+            if data_args.additional_eval_tasks:
+                eval_task_names =  [i.strip() for i in data_args.additional_eval_tasks.split(",")]
+                logger.info(f"Found additional eval tasks, {eval_task_names}")
+                eval_datasets = []
+                for t in eval_task_names:
+                    task_data_args = dataclasses.replace(data_args, task_name=t)
+                    eval_datasets.append(GlueDataset(task_data_args, tokenizer=tokenizer, evaluate=True))
+
+                all_checkpoints = glob.glob(f'{training_args.output_dir}/checkpoint-*')
+                all_checkpoints = sorted(all_checkpoints, key=lambda x: int(x.split('-')[-1]))
+
+                results = []
+
+                for checkpoint in all_checkpoints:
+                    step = int(checkpoint.split('-')[-1])
+                    logger.info(f"Using checkpoint step, {step}")
+
+                    model.load_pretrained(checkpoint)
+                    model.to(training_args.device)
+                    step_result = [step]
+                    for eval_dataset in eval_datasets:
+                        trainer.global_step = step
+                        result = trainer.evaluate(eval_dataset=eval_dataset)
+                        # result['step'] = step
+                        step_result += [result['eval_acc'], result['eval_loss']]
+                    results.append(step_result)
+
+                header = ['step']
+                for eval_dataset in eval_datasets:
+                    header += [f'{eval_dataset.args.task_name}_acc', f'{eval_dataset.args.task_name}_loss']
+
+                logger.info("***** Eval results *****")
+                report_results(header, results, axis=1)
+
+                if training_args.output_data_dir:
+                    logger.info(f"***** Eval results to file {training_args.output_data_dir}*****")
+                    report_results_file(header, results, os.path.join(training_args.output_data_dir, "eval_results.json"))
+
+
     elif training_args.do_eval:
         # Evaluation
         results = {}
