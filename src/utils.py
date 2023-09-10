@@ -77,7 +77,6 @@ def report_results_file(header, results, file_path):
         for hi, h in enumerate(header):
             dict_row[h] = row[hi]
         dict_results.append(dict_row)
-    print(dict_results)
     with open(file_path, "w") as f:
         json.dump(dict_results, f)
 
