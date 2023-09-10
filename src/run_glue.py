@@ -239,7 +239,7 @@ def main():
 
                 if training_args.output_data_dir:
                     logger.info(f"***** Eval results to file {training_args.output_data_dir}*****")
-                    report_results_file(header, results, os.path.join(training_args.output_data_dir, "eval_results.json"))
+                    report_results_file(header, results, os.path.join(training_args.output_data_dir, "eval_results_additional_file.json"))
 
 
     elif training_args.do_eval:
