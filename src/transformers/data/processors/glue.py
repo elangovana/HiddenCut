@@ -419,7 +419,7 @@ class AmazonProcessor(DataProcessor):
         for (i, line) in enumerate(df.to_dict(orient="records")):
             guid = "%s-%s" % (set_type, i)
             text_a = line["Text"]
-            label = label_map[line["Sentiment"]]
+            label = label_map[str(line["Sentiment"])]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
@@ -460,7 +460,7 @@ class YelpProcessor(DataProcessor):
         for (i, line) in enumerate(df.to_dict(orient="records")):
             guid = "%s-%s" % (set_type, i)
             text_a = line["Text"]
-            label = label_map[line["Sentiment"]]
+            label = label_map[str(line["Sentiment"])]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
