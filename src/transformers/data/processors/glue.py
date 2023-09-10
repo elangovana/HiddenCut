@@ -399,7 +399,7 @@ class ContrastSetIMDBProcessor(DataProcessor):
     def get_dev_examples(self, data_dir):
         """See base class."""
         df = pd.read_csv(os.path.join(data_dir, "test_imdb_contrast.tsv"), delimiter='\t', quotechar='"',
-                         quoting=csv.QUOTE_MINIMAL, doublequote=True,
+                         quoting=csv.QUOTE_MINIMAL, doublequote=True, header=0,
                          names=["Sentiment", "Text"])
 
         return self._create_examples(df, "dev")
@@ -418,7 +418,7 @@ class ContrastSetIMDBProcessor(DataProcessor):
         for (i, line) in enumerate(df.to_dict(orient="records")):
             guid = "%s-%s" % (set_type, i)
             text_a = line["Text"]
-            label = label_map[str(line["Sentiment"])]
+            label = label_map[str(line["Sentiment"]).lower()]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
@@ -439,7 +439,7 @@ class ContrastSetIMDBProcessorOriginal(DataProcessor):
     def get_dev_examples(self, data_dir):
         """See base class."""
         df = pd.read_csv(os.path.join(data_dir, "test_imdb_contrast_original.tsv"), delimiter='\t', quotechar='"',
-                         quoting=csv.QUOTE_MINIMAL, doublequote=True,
+                         quoting=csv.QUOTE_MINIMAL, doublequote=True, header=0,
                          names=["Sentiment", "Text"])
 
         return self._create_examples(df, "dev")
@@ -458,7 +458,7 @@ class ContrastSetIMDBProcessorOriginal(DataProcessor):
         for (i, line) in enumerate(df.to_dict(orient="records")):
             guid = "%s-%s" % (set_type, i)
             text_a = line["Text"]
-            label = label_map[str(line["Sentiment"])]
+            label = label_map[str(line["Sentiment"]).lower()]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
 
