@@ -13,9 +13,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def clean_web_text(s):
     return s.replace('&apos;', '\'').replace('&quot;', '"').replace('&amp;', '&').replace('&lt;', '<'). \
         replace('&gt;', '>').replace('&#91;', '[').replace('&#93;', ']')
+
 
 def align_column(row):
     row_str = ''
@@ -65,6 +67,21 @@ def report_results(header, results, axis):
         logger.info(align_column(['gain'] + [best - before for (best, before) in zip(best_row[1:], before_row[1:])]))
     return best_row
 
+
+def report_results_file(header, results, file_path):
+    logger.info(f"Writing report_results_file to {file_path}")
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    dict_results = []
+    for row in results:
+        dict_row = {}
+        for hi, h in enumerate(header):
+            dict_row[h] = row[hi]
+        dict_results.append(dict_row)
+    print(dict_results)
+    with open(file_path, "w") as f:
+        json.dump(dict_results, f)
+
+
 def batch_iter(dataloader, n_epochs=-1):
     if n_epochs == -1:
         while True:
@@ -74,6 +91,7 @@ def batch_iter(dataloader, n_epochs=-1):
         for _ in range(n_epochs):
             for batch in dataloader:
                 yield batch
+
 
 if __name__ == '__main__':
     tokenize('sst2')

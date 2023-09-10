@@ -23,7 +23,7 @@ from transformers import (
     set_seed,
 )
 
-from utils import report_results
+from utils import report_results, report_results_file
 
 
 @dataclass
@@ -250,6 +250,11 @@ def main():
 
         logger.info("***** Eval results *****")
         report_results(header, results, axis=1)
+
+        if training_args.output_data_dir:
+            logger.info(f"***** Eval results to file {training_args.output_data_dir}*****")
+            report_results_file(header, results, os.path.join(training_args.output_data_dir, "eval_results.json"))
+
 
 
 def _mp_fn(index):

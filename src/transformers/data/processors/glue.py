@@ -23,7 +23,7 @@ from typing import List, Optional, Union
 from ...file_utils import is_tf_available
 from ...tokenization_utils import PreTrainedTokenizer
 from .utils import DataProcessor, InputExample, InputFeatures
-
+import  pandas as pd
 
 if is_tf_available():
     import tensorflow as tf
@@ -348,7 +348,40 @@ class Sst2Processor(DataProcessor):
             label = line[1]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
         return examples
-    
+
+class ImdbJsonProcessor(DataProcessor):
+
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(
+            tensor_dict["idx"].numpy(),
+            tensor_dict["sentence"].numpy().decode("utf-8"),
+            None,
+            str(tensor_dict["label"].numpy()),
+        )
+
+    def get_train_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(pd.read_json(os.path.join(data_dir, "train.json")), "train")
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(pd.read_json(os.path.join(data_dir, "val.json")), "dev")
+
+    def get_labels(self):
+        """See base class."""
+        return ["0", "1"]
+
+    def _create_examples(self, df, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        for (i, line) in enumerate(df.to_dict(orient="records")):
+
+            guid = "%s-%s" % (set_type, i)
+            text_a = line["Text"]
+            label = "1" if line["Sentiment"].upper() == "POSITIVE" else "0"
+            examples.append(InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+        return examples
     
 class ImdbProcessor(DataProcessor):
     """Processor for the SST-2 data set (GLUE version)."""
@@ -634,6 +667,7 @@ glue_tasks_num_labels = {
     "rte": 2,
     "wnli": 2,
     "imdb": 2,
+    "imdb-json" :2
 }
 
 glue_processors = {
@@ -650,6 +684,7 @@ glue_processors = {
     "rte": RteProcessor,
     "wnli": WnliProcessor,
     "imdb": ImdbProcessor,
+    "imdb-json": ImdbJsonProcessor
 }
 
 glue_output_modes = {
@@ -665,4 +700,5 @@ glue_output_modes = {
     "rte": "classification",
     "wnli": "classification",
     "imdb": "classification",
+    "imdb-json":"classification"
 }

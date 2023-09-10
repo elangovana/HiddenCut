@@ -27,7 +27,7 @@ from .modeling_utils import PreTrainedModel
 from .optimization import AdamW, get_linear_schedule_with_warmup
 from .trainer_utils import PREFIX_CHECKPOINT_DIR, EvalPrediction, PredictionOutput, TrainOutput
 from .training_args import TrainingArguments, is_tpu_available
-from utils import report_results
+from utils import report_results, report_results_file
 
 from .modeling_roberta import RobertaForMaskedLM, RobertaForSequenceClassification
 
@@ -587,6 +587,10 @@ class Trainer:
         for x in self.eval_history:
             del x[-1]
         report_results(self.eval_header, self.eval_history, axis=self.eval_key_axis)
+        if self.args.output_data_dir:
+            logger.info(f"***** Eval results to file {self.args.output_data_dir}*****")
+            report_results_file(self.eval_header, self.eval_history, os.path.join(self.args.output_data_dir, "eval_results.json"))
+
         return TrainOutput(self.global_step, tr_loss / self.global_step)
 
     def _log(self, logs: Dict[str, float], iterator: Optional[tqdm] = None) -> None:

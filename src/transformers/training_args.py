@@ -41,6 +41,8 @@ class TrainingArguments:
     output_dir: str = field(
         metadata={"help": "The output directory where the model predictions and checkpoints will be written."}
     )
+    output_data_dir: Optional[str] = field(default=None, metadata={"help": "The data directory to write results to"})
+
     overwrite_output_dir: bool = field(
         default=False,
         metadata={
@@ -96,6 +98,7 @@ class TrainingArguments:
     aug_cutoff_ratio: float = field(default=0.1)
 
     logging_dir: Optional[str] = field(default=None, metadata={"help": "Tensorboard log dir."})
+
     logging_first_step: bool = field(default=False, metadata={"help": "Log and eval the first global_step"})
     logging_steps: int = field(default=5000, metadata={"help": "Log every X updates steps."})
     save_steps: int = field(default=10000, metadata={"help": "Save checkpoint every X updates steps."})
